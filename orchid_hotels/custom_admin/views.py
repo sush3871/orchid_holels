@@ -17,12 +17,11 @@ def admin_login(request):
 
         if user is not None and user.is_staff:
             login(request, user)
-            messages.success(request, 'Login successful! Redirecting...')
             return redirect('admin_dashboard')  # Send user to dashboard
         else:
             messages.error(request, 'Invalid username or password. Please try again.')
 
-    return render(request, 'custom_admin/login.html')  # Return login page if not logged in
+    return render(request, 'custom_admin/login.html')
 
 @login_required(login_url='/custom-admin/sign-in/')
 def admin_dashboard(request):
@@ -34,19 +33,7 @@ def admin_dashboard(request):
 
 def admin_logout(request):
     logout(request)
-    messages.success(request, 'You have been logged out successfully.')
-    return redirect('admin_login')
-@login_required(login_url='/custom-admin/sign-in/')  
-def admin_dashboard(request):
-    if not request.user.is_staff:
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('admin_login')
-    
-    return render(request, 'custom_admin/dashboard.html')
-
-def admin_logout(request):
-    logout(request)
-    messages.success(request, 'You have been logged out successfully.')
+    messages.warning(request, 'Please login to proceed.')  # Logout message
     return redirect('admin_login')
 
 def admin_signup(request):
