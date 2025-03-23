@@ -19,9 +19,13 @@ def admin_login(request):
     return render(request, 'custom_admin/login.html')
 
 @login_required(login_url='/custom-admin/login/')
+
 def admin_dashboard(request):
     return render(request, 'custom_admin/dashboard.html')
 
 def admin_logout(request):
     logout(request)
     return redirect('admin_login')
+
+def admin_signup(request):
+    return render(request, 'custom_admin/sign-up.html')
