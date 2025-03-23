@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myapp',
     'custom_admin',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -107,3 +108,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# For Email
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'  # Example: Gmail SMTP server
+# EMAIL_PORT = 587  # or 465 for SSL
+# EMAIL_USE_TLS = True  # Use TLS for encryption
+# EMAIL_HOST_USER = 'sushshirke96@gmail.com'
+# EMAIL_HOST_PASSWORD = 'Sush@2810'
+# DEFAULT_FROM_EMAIL = 'sushshirke96@gmail.com'

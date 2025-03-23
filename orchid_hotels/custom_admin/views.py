@@ -4,6 +4,18 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
+# For Password Reset
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.forms import SetPasswordForm
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.contrib.auth.forms import PasswordResetForm
+from .forms import CustomPasswordResetForm
+
+
 def admin_login(request):
     if request.user.is_authenticated:
         logout(request)  # Force logout if already logged in
@@ -21,7 +33,7 @@ def admin_login(request):
         else:
             messages.error(request, 'Invalid username or password. Please try again.')
 
-    return render(request, 'custom_admin/login.html')
+    return render(request, 'custom_admin/sign-in.html')
 
 @login_required(login_url='/custom-admin/sign-in/')
 def admin_dashboard(request):
@@ -71,3 +83,65 @@ def admin_signup(request):
         return redirect('admin_login')
 
     return render(request, 'custom_admin/sign-up.html')
+
+# Password reset view
+def password_reset(request):
+    if request.method == 'POST':
+        form = CustomPasswordResetForm(request.POST)  # Use CustomPasswordResetForm
+        
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            
+            # Check if the email exists in the database
+            try:
+                user = get_user_model().objects.get(email=email)
+            except get_user_model().DoesNotExist:
+                messages.error(request, 'Email does not exist.')
+                return redirect('password_reset')
+
+            # Generate password reset token
+            token = default_token_generator.make_token(user)
+            
+            # Encode the user ID
+            uid = urlsafe_base64_encode(str(user.pk).encode())
+
+            # Create the reset link
+            reset_link = request.build_absolute_uri(f"/password_reset_confirm/{uid}/{token}/")
+            
+            # Prepare the reset email
+            subject = "Password Reset Request"
+            message = f"Click the link to reset your password: {reset_link}"
+            send_mail(subject, message, 'sushshirke96@gmail.com', [email])
+
+            messages.success(request, 'Password reset email sent.')
+            return redirect('password_reset')  # Redirect after sending the email
+    else:
+        form = CustomPasswordResetForm()  # Use CustomPasswordResetForm
+
+    return render(request, 'custom_admin/password-reset.html', {'form': form})
+
+
+# Password reset confirmation view
+def password_reset_confirm(request, uidb64, token):
+    try:
+        # Decode the uid from the URL
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = get_user_model().objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, user.DoesNotExist):
+        user = None
+
+    # Check if the user exists and if the token is valid
+    if user and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your password has been reset successfully.')
+                return redirect('admin_login')  # Redirect to login page
+        else:
+            form = SetPasswordForm(user)
+        
+        return render(request, 'custom_admin/password-reset-confirm.html', {'form': form})
+    else:
+        messages.error(request, 'The password reset link is invalid or has expired.')
+        return redirect('password_reset')  # Redirect to the password reset page
