@@ -22,20 +22,25 @@ def admin_login(request):
         return redirect('admin_login')
 
     if request.method == 'POST':
-        username = request.POST.get('username')
+        email = request.POST.get('email')  # Changed to email
         password = request.POST.get('password')
 
-        user = authenticate(request, username=username, password=password)
+        try:
+            user = User.objects.get(email=email)  # Get user by email
+            user = authenticate(request, username=user.username, password=password)  # Authenticate using username
+        except User.DoesNotExist:
+            user = None  # No user found with that email
 
         if user is not None and user.is_staff:
             login(request, user)
-            return redirect('admin_dashboard')  # Send user to dashboard
+            return redirect('admin_dashboard')  # Redirect to dashboard
         else:
-            messages.error(request, 'Invalid username or password. Please try again.')
+            messages.error(request, 'Invalid email or password. Please try again.')
 
     return render(request, 'custom_admin/sign-in.html')
 
 @login_required(login_url='/custom-admin/sign-in/')
+
 def admin_dashboard(request):
     if not request.user.is_staff:
         messages.error(request, 'You do not have permission to access this page.')
@@ -50,22 +55,21 @@ def admin_logout(request):
 
 def admin_signup(request):
     if request.method == 'POST':
-        username = request.POST.get('username').strip()
-        email = request.POST.get('email').strip()
-        password = request.POST.get('password').strip()
-        confirm_password = request.POST.get('confirm_password').strip()
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
 
-        # Check if all fields are filled
+        print(f"Received Data - Username: {username}, Email: {email}")  # Debugging
+
         if not username or not email or not password or not confirm_password:
             messages.error(request, 'All fields are required.')
             return redirect('admin_signup')
 
-        # Password match validation
         if password != confirm_password:
             messages.error(request, 'Passwords do not match.')
             return redirect('admin_signup')
 
-        # Username and Email uniqueness validation
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists.')
             return redirect('admin_signup')
@@ -78,6 +82,8 @@ def admin_signup(request):
         user = User.objects.create_user(username=username, email=email, password=password)
         user.is_staff = True
         user.save()
+        
+        print("User created successfully!")  # Debugging
 
         messages.success(request, 'Admin account created successfully. Please sign in.')
         return redirect('admin_login')

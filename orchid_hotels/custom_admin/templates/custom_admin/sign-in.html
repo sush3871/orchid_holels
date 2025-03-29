@@ -70,8 +70,8 @@
                                     <form action="{% url 'admin_login' %}" method="post">
                                         {% csrf_token %} 
                                         <div class="mb-3">
-                                            <label for="username" class="form-label">Username</label>
-                                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required>
                                         </div>
                                     
                                         <div class="mb-3">
@@ -105,6 +105,8 @@
                                             <button class="btn btn-success w-100" type="submit">Sign In</button>
                                         </div>
                                     </form>
+                                    
+                                    
                                     
                                 </div>
                             </div>
